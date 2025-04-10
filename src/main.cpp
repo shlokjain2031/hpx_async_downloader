@@ -11,6 +11,7 @@ int my_hpx_main(hpx::program_options::variables_map& vm) {
     SafeQueue<std::string> queue;
     std::atomic<bool> done = false;
     std::vector<std::future<void>> futures;
+    std::mutex futures_mutex;
 
     // Producer thread: reads URLs and fills the queue
     std::thread producer(processUrls, URL_PATH, std::ref(queue), std::ref(done));
@@ -18,10 +19,9 @@ int my_hpx_main(hpx::program_options::variables_map& vm) {
     // Launch multiple worker threads
     const int num_workers = std::thread::hardware_concurrency();
     std::vector<std::thread> workers;
+    workers.reserve(num_workers);
     for (int i = 0; i < num_workers; ++i) {
-        workers.emplace_back([&queue, &done, &futures]() {
-                worker(queue, done, futures);
-            });
+        workers.emplace_back(worker, std::ref(queue), std::ref(done), std::ref(futures), std::ref(futures_mutex));
     }
 
     // Wait for producer to finish
@@ -34,6 +34,7 @@ int my_hpx_main(hpx::program_options::variables_map& vm) {
 
     // Wait for all downloads to complete
     for (auto& f : futures) {
+        // Call where error occurs
         f.wait();
     }
 

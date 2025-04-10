@@ -22,7 +22,8 @@ void processUrls(const std::string& filename, SafeQueue<std::string>& queue, std
 }
 
 // Worker thread: send request and start download
-void worker(SafeQueue<std::string>& queue, std::atomic<bool>& done, std::vector<std::future<void>>& futures) {
+void worker(SafeQueue<std::string>& queue, std::atomic<bool>& done,
+    std::vector<std::future<void>>& futures, std::mutex& futures_mutex) {
     while (!done || !queue.empty()) {
         std::string url;
         if (queue.pop(url)) {
@@ -31,14 +32,11 @@ void worker(SafeQueue<std::string>& queue, std::atomic<bool>& done, std::vector<
             // Generate output path
             std::string output_path = generate_output_path(url);
 
-            // Create a promise and future for tracking
-            std::promise<void> promise;
-            std::future<void> future = promise.get_future();
-
             // Launch download task
-            download_file(url, output_path, promise);
+            std::future<void> future = processDownloadRequest(url, output_path);
 
             // Store the future to wait later
+            std::lock_guard<std::mutex> lock(futures_mutex);
             futures.push_back(std::move(future));
 
         } else {
@@ -77,8 +75,12 @@ std::string generate_output_path(const std::string& url) {
 }
 
 // TODO: Set the output_path when the function is called using the generate_output_path function
-void download_file(const std::string& url, const std::string& output_path, std::promise<void>& completion_promise) {
-    std::thread([url, output_path, &completion_promise]() mutable {
+std::future<void> processDownloadRequest(const std::string& url, const std::string& output_path) {
+    // Create a promise and future for tracking
+    std::promise<void> completion_promise;
+    std::future<void> future = completion_promise.get_future();
+
+    std::thread([url, output_path, completion_promise = std::move(completion_promise)]() mutable {
         // std::cout << "Worker Download file[" << std::this_thread::get_id() << "] started.\n";
 
         curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -118,6 +120,8 @@ void download_file(const std::string& url, const std::string& output_path, std::
         completion_promise.set_value();
 
     }).detach(); // Detached thread, as we are using future/promise for sync
+
+    return future;
 }
 
 

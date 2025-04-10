@@ -51,7 +51,7 @@ private:
 
 // Function declarations
 void processUrls(const std::string& filename, SafeQueue<std::string>& queue, std::atomic<bool>& done);
-void worker(SafeQueue<std::string>& queue, std::atomic<bool>& done, std::vector<std::future<void>>& futures);
-void download_file(const std::string& url);
+void worker(SafeQueue<std::string>& queue, std::atomic<bool>& done,
+            std::vector<std::future<void>>& futures, std::mutex& futures_mutex);
+std::future<void> processDownloadRequest(const std::string& url, const std::string& output_path);
 std::string generate_output_path(const std::string& url);
-void download_file(const std::string& url, const std::string& output_path, std::promise<void>& completion_promise);
