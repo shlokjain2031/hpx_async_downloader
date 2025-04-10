@@ -10,8 +10,10 @@
 // SafeQueue method implementations
 // ... (implement push, pop, empty with locking)
 
+int total_urls = 0;
+
 // Read URLs and push to queue
-void processUrls(const std::string& filename, SafeQueue<std::string>& queue, std::atomic<bool>& done) {
+void process_urls(const std::string& filename, SafeQueue<std::string>& queue, std::atomic<bool>& done) {
     std::ifstream file(filename);
     std::string url;
     while (std::getline(file, url)) {
@@ -19,21 +21,21 @@ void processUrls(const std::string& filename, SafeQueue<std::string>& queue, std
         queue.push(url);
     }
     done = true;
+
 }
 
 // Worker thread: send request and start download
 void worker(SafeQueue<std::string>& queue, std::atomic<bool>& done,
     std::vector<std::future<void>>& futures, std::mutex& futures_mutex) {
+
     while (!done || !queue.empty()) {
         std::string url;
         if (queue.pop(url)) {
-            // std::cout << "Worker on pop [" << std::this_thread::get_id() << "] started.\n";
-            std::cout << "Processing URL: " << url << std::endl;
             // Generate output path
             std::string output_path = generate_output_path(url);
 
             // Launch download task
-            std::future<void> future = processDownloadRequest(url, output_path);
+            std::future<void> future = process_download_request(url, output_path);
 
             // Store the future to wait later
             std::lock_guard<std::mutex> lock(futures_mutex);
@@ -74,8 +76,7 @@ std::string generate_output_path(const std::string& url) {
     return output_path.string();
 }
 
-// TODO: Set the output_path when the function is called using the generate_output_path function
-std::future<void> processDownloadRequest(const std::string& url, const std::string& output_path) {
+std::future<void> process_download_request(const std::string& url, const std::string& output_path) {
     // Create a promise and future for tracking
     std::promise<void> completion_promise;
     std::future<void> future = completion_promise.get_future();
@@ -101,13 +102,25 @@ std::future<void> processDownloadRequest(const std::string& url, const std::stri
             });
 
             curl_easy_setopt(handle, CURLOPT_WRITEDATA, &outfile);
+            // Progress callback
+            curl_easy_setopt(handle, CURLOPT_XFERINFOFUNCTION, +[](void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t /*ultotal*/, curl_off_t /*ulnow*/) -> int {
+                if (dltotal > 0) {
+                    int percentage = static_cast<int>((dlnow * 100) / dltotal);
+                    std::string* url_ptr = static_cast<std::string*>(clientp);
+
+                    std::lock_guard<std::mutex> lock(cout_mutex);
+
+                    std::cout << "\rDownloading: [" << *url_ptr << "]: " << percentage << "% " << std::flush;
+                }
+                return 0;
+            });
+            curl_easy_setopt(handle, CURLOPT_XFERINFODATA, static_cast<void*>(const_cast<std::string*>(&url)));
+            curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0L); // Enable progress meter
 
             CURLcode res = curl_easy_perform(handle);
 
             if (res != CURLE_OK) {
-                std::cerr << "Download error: " << curl_easy_strerror(res) << std::endl;
-            } else {
-                std::cout << "Downloaded: " << url << " -> " << output_path << std::endl;
+                std::cerr << "\nDownload error: " << curl_easy_strerror(res) << std::endl;
             }
 
             outfile.close();
@@ -115,6 +128,8 @@ std::future<void> processDownloadRequest(const std::string& url, const std::stri
         }
 
         curl_global_cleanup();
+
+        ++completed_downloads;
 
         // Notify completion
         completion_promise.set_value();
@@ -124,6 +139,45 @@ std::future<void> processDownloadRequest(const std::string& url, const std::stri
     return future;
 }
 
+void show_progress_bar(std::atomic<int>& completed_downloads, int total_urls) {
+    const int bar_width = 50;
+    auto start_time = std::chrono::steady_clock::now();
 
+    while (completed_downloads.load() < total_urls) {
+        int finished = completed_downloads.load();
+        float progress = static_cast<float>(finished) / total_urls;
+
+        auto now = std::chrono::steady_clock::now();
+        auto elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(now - start_time).count();
+
+        // Estimate ETA
+        int estimated_total_time = (progress > 0.0) ? int(elapsed_seconds / progress) : 0;
+        int eta_seconds = estimated_total_time - elapsed_seconds;
+
+        std::lock_guard<std::mutex> lock(cout_mutex);
+        // Build progress bar string
+        std::cout << "\r[";
+        int pos = static_cast<int>(bar_width * progress);
+        for (int i = 0; i < bar_width; ++i) {
+            if (i < pos) std::cout << "=";
+            else if (i == pos) std::cout << ">";
+            else std::cout << " ";
+        }
+
+        std::cout << "] " << std::setw(3) << int(progress * 100.0) << "% ("
+                  << finished << "/" << total_urls << ") "
+                  << "Elapsed: " << elapsed_seconds << "s "
+                  << "ETA: " << (eta_seconds > 0 ? eta_seconds : 0) << "s"
+                  << std::flush;
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(200)); // Refresh rate
+    }
+
+    // Final full bar
+    std::cout << "\r[";
+    for (int i = 0; i < bar_width; ++i) std::cout << "=";
+    std::cout << "] 100% (" << total_urls << "/" << total_urls << ") Completed!"
+              << std::endl;
+}
 
 

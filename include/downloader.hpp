@@ -50,8 +50,14 @@ private:
 };
 
 // Function declarations
-void processUrls(const std::string& filename, SafeQueue<std::string>& queue, std::atomic<bool>& done);
+void process_urls(const std::string& filename, SafeQueue<std::string>& queue, std::atomic<bool>& done);
 void worker(SafeQueue<std::string>& queue, std::atomic<bool>& done,
             std::vector<std::future<void>>& futures, std::mutex& futures_mutex);
-std::future<void> processDownloadRequest(const std::string& url, const std::string& output_path);
+std::future<void> process_download_request(const std::string& url, const std::string& output_path);
 std::string generate_output_path(const std::string& url);
+
+inline std::atomic<int> completed_downloads = 0;
+
+void show_progress_bar(std::atomic<int>& completed_downloads, int total_urls);
+
+inline std::mutex cout_mutex;

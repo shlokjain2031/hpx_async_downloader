@@ -2,6 +2,7 @@
 #include <hpx/init.hpp>
 
 #include <downloader.hpp>
+#include <fstream>
 
 #define URL_PATH "/Users/shlokjain/CLionProjects/hpx_async_downloader/urls.txt"
 
@@ -13,8 +14,25 @@ int my_hpx_main(hpx::program_options::variables_map& vm) {
     std::vector<std::future<void>> futures;
     std::mutex futures_mutex;
 
+    const std::string filename = URL_PATH;
+
+    int total_urls = [&filename]() -> int {
+        std::ifstream file(filename);
+        int lines = 0;
+        std::string line;
+        while (std::getline(file, line)) {
+            ++lines;
+        }
+        return lines;
+    }();
+
+    std::cout << "Total URLs: " << total_urls << std::endl;
+
     // Producer thread: reads URLs and fills the queue
-    std::thread producer(processUrls, URL_PATH, std::ref(queue), std::ref(done));
+    std::thread producer(process_urls, URL_PATH, std::ref(queue), std::ref(done));
+
+    // start the progress bar
+    std::thread progress_thread(show_progress_bar, std::ref(completed_downloads), total_urls);
 
     // Launch multiple worker threads
     const int num_workers = std::thread::hardware_concurrency();
@@ -38,11 +56,14 @@ int my_hpx_main(hpx::program_options::variables_map& vm) {
         f.wait();
     }
 
+    progress_thread.join();
+
     std::cout << "All downloads completed!" << std::endl;
 
     return hpx::local::finalize();
 }
 
 int main(int argc, char* argv[]) {
+
     return hpx::local::init(my_hpx_main, argc, argv);
 }
