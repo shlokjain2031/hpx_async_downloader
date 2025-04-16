@@ -5,12 +5,10 @@
 #ifndef URL_READER_HPP
 #define URL_READER_HPP
 
-#include <core/shared_queue.hpp>
-#include <hpx/include/async.hpp>
-#include <fstream>
+#include </Users/shlokjain/CLionProjects/hpx_async_downloader/include/core/shared_queue.hpp>
 #include <string>
 
+
+void read_urls_to_queue(const std::string& filename, SharedQueue<std::string>& queue);
+
 #endif //URL_READER_HPP
-
-void read_urls_to_queue(const std::string& filename, SharedQueue& queue);
-

@@ -15,6 +15,10 @@ add_executable(hpx_async_downloader main.cpp
         include/utils/http.hpp
         include/core/shared_queue.hpp
         src/core/url_reader.cpp
+        src/utils/http.cpp
+        src/io/downloader.cpp
+        include/utils/file_handling.hpp
+        src/utils/file_handling.cpp
 )
 
 target_link_libraries(hpx_async_downloader

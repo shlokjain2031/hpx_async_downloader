@@ -1,14 +1,14 @@
 //
 // Created by Shlok Jain on 16/04/25.
 //
+#pragma once
 
 #ifndef SHARED_QUEUE_HPP
 #define SHARED_QUEUE_HPP
-#include <hpx/include/async.hpp>
 #include <string>
-#include <atomic>
 #include <queue>
 
+template <typename T>
 class SharedQueue {
 public:
     // Push a URL into the queue
@@ -27,6 +27,12 @@ public:
         url = queue_.front();
         queue_.pop();
         return true;
+    }
+
+    // Check if the queue is empty
+    bool is_empty() const {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return queue_.empty();
     }
 
     // Wait for and pop a URL from the queue (blocking)
