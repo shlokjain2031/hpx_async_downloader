@@ -33,7 +33,7 @@ void worker(SafeQueue<std::string>& queue, std::atomic<bool>& done,
             std::string output_path = generate_output_path(url);
 
             // Launch download task
-            std::future<void> future = processDownloadRequest(url, output_path);
+            std::future<void> future = process_download_request(url, output_path);
 
             // Store the future to wait later
             std::lock_guard<std::mutex> lock(futures_mutex);
@@ -75,7 +75,7 @@ std::string generate_output_path(const std::string& url) {
 }
 
 // TODO: Set the output_path when the function is called using the generate_output_path function
-std::future<void> processDownloadRequest(const std::string& url, const std::string& output_path) {
+std::future<void> process_download_request(const std::string& url, const std::string& output_path) {
     // Create a promise and future for tracking
     std::promise<void> completion_promise;
     std::future<void> future = completion_promise.get_future();
