@@ -7,9 +7,15 @@ include_directories(include)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(hpx_async_downloader src/main.cpp
-        include/downloader.hpp
-        src/downloader.cpp)
+add_executable(hpx_async_downloader main.cpp
+        include/core/scheduler.hpp
+        include/core/dispatcher.hpp
+        include/input/url_reader.hpp
+        include/io/downloader.hpp
+        include/utils/http.hpp
+        include/core/shared_queue.hpp
+        src/core/url_reader.cpp
+)
 
 target_link_libraries(hpx_async_downloader
         HPX::hpx
