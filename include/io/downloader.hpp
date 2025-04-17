@@ -8,7 +8,7 @@
 #include </Users/shlokjain/CLionProjects/hpx_async_downloader/include/core/shared_queue.hpp>
 
 
-void process_downloads(SharedQueue<std::string>& queue);
+void process_downloads(SharedUrlQueue<std::string>& queue);
 
-hpx::future<void> downloader_worker(SharedQueue<std::string>& queue);
+hpx::future<void> downloader_worker(SharedUrlQueue<std::string>& queue);
 #endif //DOWNLOADER_HPP

@@ -9,6 +9,6 @@
 #include <string>
 
 
-void read_urls_to_queue(const std::string& filename, SharedQueue<std::string>& queue);
+void read_urls_to_queue(const std::string& filename, SharedUrlQueue<std::string>& queue);
 
 #endif //URL_READER_HPP

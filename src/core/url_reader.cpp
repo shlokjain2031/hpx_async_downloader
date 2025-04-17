@@ -7,7 +7,7 @@
 #include </Users/shlokjain/CLionProjects/hpx_async_downloader/include/core/shared_queue.hpp>
 #include <iostream>
 
-void read_urls_to_queue(const std::string& filename, SharedQueue<std::string>& queue) {
+void read_urls_to_queue(const std::string& filename, SharedUrlQueue<std::string>& queue) {
     std::ifstream file(filename);
     std::string url;
     int count = 0;
