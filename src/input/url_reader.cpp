@@ -18,8 +18,7 @@ bool is_valid_url(const std::string& url) {
     return std::regex_match(url, pattern);
 }
 
-ReadUrlsHandle read_urls_to_queue(const std::string& filename, SharedUrlQueue<std::string>& queue) {
-    std::size_t N = 5;
+ReadUrlsHandle read_urls_to_queue(const std::string& filename, SharedUrlQueue<std::string>& queue, std::size_t batch_size) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Failed to open URL file: " << filename << std::endl;
@@ -34,7 +33,7 @@ ReadUrlsHandle read_urls_to_queue(const std::string& filename, SharedUrlQueue<st
             buffer.push_back(line);
         }
 
-        if (buffer.size() == N) {
+        if (buffer.size() == batch_size) {
             for (auto& url : buffer) {
                 queue.push(url);
             }

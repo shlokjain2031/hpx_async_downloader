@@ -18,11 +18,12 @@ int my_hpx_main(hpx::program_options::variables_map& vm) {
     std::cout << "Using " << num_threads << " downloader threads out of " << num_cores << " cores." << std::endl;
 
     // Start coroutine (runs until first co_await)
-    auto handle = read_urls_to_queue(URL_PATH, queue);
+    constexpr std::size_t batch_size = 5;
+    const auto read_urls_handle = read_urls_to_queue(URL_PATH, queue, batch_size);
 
     // Manually resume the coroutine until it's done
-    while (!handle.done()) {
-        handle.resume();
+    while (!read_urls_handle.done()) {
+        read_urls_handle.resume();
 
         for (unsigned int i = 0; i < num_threads; i++) {
             hpx::future<void> downloader_future = hpx::async(&downloader_worker, std::ref(queue));
@@ -40,7 +41,6 @@ int my_hpx_main(hpx::program_options::variables_map& vm) {
 
     return hpx::local::finalize();
 }
-
 int main(int argc, char* argv[]) {
     return hpx::local::init(my_hpx_main, argc, argv);
 }
