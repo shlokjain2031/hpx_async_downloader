@@ -19,6 +19,7 @@ add_executable(hpx_async_downloader main.cpp
         src/io/downloader.cpp
         include/utils/file_handling.hpp
         src/utils/file_handling.cpp
+        include/input/url_reader_promise.hpp
 )
 
 target_link_libraries(hpx_async_downloader

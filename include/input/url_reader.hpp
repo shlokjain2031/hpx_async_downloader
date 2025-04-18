@@ -8,7 +8,10 @@
 #include </Users/shlokjain/CLionProjects/hpx_async_downloader/include/core/shared_queue.hpp>
 #include <string>
 
+#include "url_reader_promise.hpp"
 
-void read_urls_to_queue(const std::string& filename, SharedUrlQueue<std::string>& queue);
+bool is_valid_url(const std::string& url);
+
+ReadUrlsHandle read_urls_to_queue(const std::string& filename, SharedUrlQueue<std::string>& queue);
 
 #endif //URL_READER_HPP

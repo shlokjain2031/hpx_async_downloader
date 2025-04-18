@@ -10,30 +10,36 @@
 
 int my_hpx_main(hpx::program_options::variables_map& vm) {
     SharedUrlQueue<std::string> queue;
-    std::vector<hpx::future<void>> futures;
-    std::mutex futures_mutex;
-
-    hpx::future<void> producer_future = hpx::async(&read_urls_to_queue, URL_PATH, std::ref(queue));
+    std::vector<hpx::future<void>> download_futures;
+    std::mutex download_futures_mutex;
+    std::atomic<bool> done(false);  // Signal to indicate when the producer is done reading
 
     const unsigned int num_cores = std::thread::hardware_concurrency();
     const unsigned int num_threads = (num_cores > 2) ? num_cores - 2 : 1;  // Ensure at least one thread is used
-
     std::cout << "Using " << num_threads << " downloader threads out of " << num_cores << " cores." << std::endl;
-    for (unsigned int i = 0; i < num_threads; i++) {
-        hpx::future<void> downloader_future = hpx::async(&downloader_worker, std::ref(queue));
 
-        // Store the future to wait later
-        std::lock_guard<std::mutex> lock(futures_mutex);
-        futures.push_back(std::move(downloader_future));
+    // Start coroutine (runs until first co_await)
+    auto handle = read_urls_to_queue(URL_PATH, queue);
+
+    // Manually resume the coroutine until it's done
+    while (!handle.done()) {
+        handle.resume();
+
+        for (unsigned int i = 0; i < num_threads; i++) {
+            hpx::future<void> downloader_future = hpx::async(&downloader_worker, std::ref(queue));
+
+            // Store the future to wait later
+            std::lock_guard<std::mutex> lock(download_futures_mutex);
+            download_futures.push_back(std::move(downloader_future));
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    producer_future.get();
-    queue.set_done();
+    // queue.set_done();
 
     // Wait for all downloads to complete
-    for (auto& f : futures) {
-        f.wait();
-    }
+    hpx::wait_all(download_futures);
 
     std::cout << "All downloads completed!" << std::endl;
 
