@@ -34,8 +34,8 @@ chmod +x run_benchmarks.sh
 ### **Benchmark Results**
 
 ### **Implementation Details**
-- Implemented a generic SharedUrlQueue<T> as a thread-safe queue using std::mutex, std::condition_variable, and an atomic done_ flag. This queue acts as the core communication channel between the producer coroutine (which pushes URLs read from a file) and the downloader workers (which pop URLs to fetch and process download requests in parallel).
-- Designed a custom coroutine type ReadUrlsHandle with ReadUrlsPromise to support manual suspension and resumption of the URL reading logic. This coroutine enables chunked processing of input URLs and gives the program full control over when to yield and resume reading, allowing tight coordination with downloader threads.
-- Wrote a low-level HTTP downloader using libcurl that fetches data from a given URL and streams it directly into a file using a custom write callback. This function is invoked inside download coroutines to perform efficient I/O without blocking other parts of the pipeline.
-- Built a download worker coroutine using HPX’s hpx::async to parallelize file downloads. Each worker thread invokes process_downloads, which pops URLs from the shared queue and triggers libcurl-based fetch requests. The workers are launched in a loop and their futures stored for later synchronization, enabling scalable concurrent downloads across multiple threads.
-- Python script to visualise benchmarks like download time, CPU Utilisation and latency and visualise them to using plotting libraries
+- Implemented SharedUrlQueue using std::mutex, std::condition_variable, and atomic done_ flag to synchronize access between the URL reader coroutine and parallel downloader threads.
+- Designed a custom coroutine (ReadUrlsHandle, ReadUrlsPromise) for chunked URL reading with manual suspension/resumption to control data ingestion flow based on downloader readiness.
+- Built a libcurl-based downloader using a custom write callback to stream HTTP responses directly into output files without blocking other tasks or threads.
+- Spawned parallel download workers using hpx::async, each calling process_downloads to pop URLs and trigger file downloads; worker futures are stored for synchronized completion.
+- Python script benchmarks and visualizes metrics like download time, CPU utilization, and latency to evaluate system performance across file sizes and thread counts.
