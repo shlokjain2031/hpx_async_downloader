@@ -7,7 +7,7 @@
 #include <fstream>
 #include <iostream>
 
-bool fetch_download_request(const std::string& url, const std::string& output_path) {
+bool fetch_download_request(const std::string& url, const std::string& output_path, std::atomic<std::size_t>& total_parallel_bytes_downloaded) {
     curl_global_init(CURL_GLOBAL_DEFAULT);
     CURL* handle = curl_easy_init();
 
@@ -38,6 +38,7 @@ bool fetch_download_request(const std::string& url, const std::string& output_pa
         });
 
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, &outfile);
+    total_parallel_bytes_downloaded += outfile.tellp();
 
     CURLcode res = curl_easy_perform(handle);
 

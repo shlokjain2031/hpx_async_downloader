@@ -10,5 +10,5 @@
 
 void process_downloads(SharedUrlQueue<std::string>& queue);
 
-hpx::future<void> downloader_worker(SharedUrlQueue<std::string>& queue);
+hpx::future<void> downloader_worker(SharedUrlQueue<std::string>& queue, std::atomic<std::size_t>& total_parallel_bytes_downloaded);
 #endif //DOWNLOADER_HPP

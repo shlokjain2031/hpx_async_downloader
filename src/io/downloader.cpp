@@ -8,13 +8,13 @@
 #include </Users/shlokjain/CLionProjects/hpx_async_downloader/include/utils/http.hpp>
 #include <hpx/future.hpp>
 
-void process_downloads(SharedUrlQueue<std::string>& queue) {
+void process_downloads(SharedUrlQueue<std::string>& queue, std::atomic<std::size_t>& total_parallel_bytes_downloaded) {
     while (!queue.is_done() || !queue.is_empty()) {
         std::string url = queue.pop();
         if (!url.empty()) {
             try {
                 std::string output_path = generate_output_path(url);
-                fetch_download_request(url, output_path);
+                fetch_download_request(url, output_path, total_parallel_bytes_downloaded);
             } catch (const std::exception& e) {
                 std::cerr << "Error processing URL " << url << ": " << e.what() << '\n';
             }
@@ -25,7 +25,7 @@ void process_downloads(SharedUrlQueue<std::string>& queue) {
     }
 }
 
-hpx::future<void> downloader_worker(SharedUrlQueue<std::string>& queue) {
-    return hpx::async(&process_downloads, std::ref(queue));
+hpx::future<void> downloader_worker(SharedUrlQueue<std::string>& queue, std::atomic<std::size_t>& total_parallel_bytes_downloaded) {
+    return hpx::async(&process_downloads, std::ref(queue), std::ref(total_parallel_bytes_downloaded));
 }
 
