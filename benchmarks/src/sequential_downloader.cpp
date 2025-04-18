@@ -74,7 +74,7 @@ double sequential_downloader(std::atomic<std::size_t>& total_sequential_bytes_do
         std::string output_path = BENCHMARKS_PATH + filename;
 
         if (sequential_download_url(url, output_path, total_sequential_bytes_downloaded)) {
-            std::cout << "Downloaded Seq: " << url << " -> " << output_path << "\n";
+            // std::cout << "Downloaded Seq: " << url << " -> " << output_path << "\n";
         } else {
             std::cerr << "Failed to download: " << url << "\n";
         }

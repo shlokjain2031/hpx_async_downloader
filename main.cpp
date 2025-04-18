@@ -20,7 +20,7 @@ double parallel_downloader(std::size_t batch_size, std::atomic<std::size_t>& tot
 
     const unsigned int num_cores = hpx::get_num_worker_threads();
     const unsigned int num_threads = (num_cores > 2) ? num_cores - 2 : 1;  // Ensure at least one thread is used
-    std::cout << "Using " << num_threads << " downloader threads out of " << num_cores << " cores." << std::endl;
+    // std::cout << "Using " << num_threads << " downloader threads out of " << num_cores << " cores." << std::endl;
 
     auto start = std::chrono::high_resolution_clock::now();
     // Start coroutine (runs until first co_await)
@@ -90,10 +90,10 @@ int my_hpx_main(const hpx::program_options::variables_map& vm) {
     std::atomic<std::size_t> total_parallel_bytes_downloaded = 0;
     std::atomic<std::size_t> total_sequential_bytes_downloaded = 0;
 
-    std::cout << "\nRunning Parallel Async File Downloader\n";
+    // std::cout << "\nRunning Parallel Async File Downloader\n";
     const double parallel_elapsed = parallel_downloader(batch_size, total_parallel_bytes_downloaded);
 
-    std::cout << "\nRunning Sequential Async File Downloader\n";
+    // std::cout << "\nRunning Sequential Async File Downloader\n";
     const double sequential_elapsed = sequential_downloader(total_sequential_bytes_downloaded);
 
     const double speedup = calculate_speedup(sequential_elapsed, parallel_elapsed);

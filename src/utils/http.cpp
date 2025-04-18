@@ -53,6 +53,6 @@ curl_off_t fetch_download_request(const std::string& url, const std::string& out
         return 0;
     }
 
-    std::cout << "Downloaded Parallel: " << url << " -> " << output_path << std::endl;
+    // std::cout << "Downloaded Parallel: " << url << " -> " << output_path << std::endl;
     return downloaded_bytes;
 }

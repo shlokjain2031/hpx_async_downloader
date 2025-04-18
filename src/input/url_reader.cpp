@@ -49,6 +49,6 @@ ReadUrlsHandle read_urls_to_queue(const std::string& filename, SharedUrlQueue<st
 
     queue.set_done();
 
-    std::cout << "Finished reading URLs\n";
+    // std::cout << "Finished reading URLs\n";
     co_return;
 }
