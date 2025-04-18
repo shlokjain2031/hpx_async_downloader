@@ -17,7 +17,7 @@ bool is_valid_url(const std::string& url) {
 }
 
 ReadUrlsHandle read_urls_to_queue(const std::string& filename, SharedUrlQueue<std::string>& queue,
-    const std::size_t batch_size, std::atomic<std::size_t>& num_of_urls) {
+    const std::size_t batch_size) {
 
     std::ifstream file(filename);
     if (!file.is_open()) {
@@ -35,8 +35,7 @@ ReadUrlsHandle read_urls_to_queue(const std::string& filename, SharedUrlQueue<st
 
         if (buffer.size() == batch_size) {
             for (auto& url : buffer) {
-                queue.push(url);
-                ++num_of_urls;
+                queue.push(url);;
             }
             buffer.clear();
 
@@ -46,7 +45,6 @@ ReadUrlsHandle read_urls_to_queue(const std::string& filename, SharedUrlQueue<st
 
     for (auto& url : buffer) {
         queue.push(url);
-        ++num_of_urls;
     }
 
     queue.set_done();
