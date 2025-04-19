@@ -7,10 +7,9 @@
 #include <fstream>
 #include <iostream>
 
-bool fetch_download_request(const std::string& url, const std::string& output_path) {
+curl_off_t fetch_download_request(const std::string& url, const std::string& output_path) {
     curl_global_init(CURL_GLOBAL_DEFAULT);
     CURL* handle = curl_easy_init();
-
 
     if (!handle) {
         std::cerr << "Failed to initialize CURL for URL: " << url << std::endl;
@@ -35,11 +34,15 @@ bool fetch_download_request(const std::string& url, const std::string& output_pa
                 return size * nmemb;
             }
             return 0;
+            return size * nmemb;
         });
 
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, &outfile);
 
     CURLcode res = curl_easy_perform(handle);
+
+    curl_off_t downloaded_bytes = 0;
+    curl_easy_getinfo(handle, CURLINFO_SIZE_DOWNLOAD_T, &downloaded_bytes);
 
     outfile.close();
     curl_easy_cleanup(handle);
@@ -47,9 +50,9 @@ bool fetch_download_request(const std::string& url, const std::string& output_pa
 
     if (res != CURLE_OK) {
         std::cerr << "Download error for " << url << ": " << curl_easy_strerror(res) << std::endl;
-        return false;
+        return 0;
     }
 
-    std::cout << "Downloaded: " << url << " -> " << output_path << std::endl;
-    return true;
+    // std::cout << "Downloaded Parallel: " << url << " -> " << output_path << std::endl;
+    return downloaded_bytes;
 }

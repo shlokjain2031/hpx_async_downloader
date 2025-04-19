@@ -12,6 +12,6 @@
 
 bool is_valid_url(const std::string& url);
 
-ReadUrlsHandle read_urls_to_queue(const std::string& filename, SharedUrlQueue<std::string>& queue);
+ReadUrlsHandle read_urls_to_queue(const std::string& filename, SharedUrlQueue<std::string>& queue, std::size_t batch_size);
 
 #endif //URL_READER_HPP

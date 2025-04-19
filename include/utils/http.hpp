@@ -4,6 +4,7 @@
 
 #ifndef HTTP_HPP
 #define HTTP_HPP
+#include <curl/system.h>
 
-bool fetch_download_request(const std::string& url, const std::string& output_path);
+curl_off_t fetch_download_request(const std::string& url, const std::string& output_path);
 #endif //HTTP_HPP
