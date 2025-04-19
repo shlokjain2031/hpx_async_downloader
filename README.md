@@ -24,14 +24,42 @@ The code utilizes **HPX futures and threads** and custom coroutines to distribut
 - Build the project using CMake
 - Run the program with the following command
 
-  `./parallel_matrix_multi --n 3 --m 2 --k 2 --s 1000 --l 0 --u 10000`
+  `./hpx_async_downloader --hpx:threads 4 --benchmarking 0 --batch_size 20 --num_of_urls 100`
 - Also generate benchmarks by running `/benchmarks/run_benchmarks.sh` using the following command
 ```
 chmod +x run_benchmarks.sh
 ./run_benchmarks.sh  
 ```
 
+### **Sample Output**
+```
+Time taken: 8.64762 sec
+Batch Size: 20
+Number of URLs: 100
+Total Bytes Downloaded: 109800
+Speedup: 3.90333
+Number of threads: 4
+Efficiency: 97.5833%
+Throughput: 12697.1
+Latency per task: 7.8758e-05
+```
+
 ### **Benchmark Results**
+- *Strong Parallel Performance*
+
+  HPX async downloader shows near-linear speedup and high efficiency (up to 97.6%) for batch sizes like 20 with 4 threads, completing 100 downloads in just 8.65s.
+- *Optimal Batch Size Range*
+  
+  Batch sizes between 32–256 hit the sweet spot for large number of URLs, balancing task granularity and parallelism without overwhelming the system or underutilizing threads.
+- *Thread Count Matters*
+  
+  Best performance is observed with 2–4 threads. Higher thread counts don’t help much unless the number of URLs is large enough to distribute effectively.
+- *Latency & Throughput*
+  
+  Tasks show low latency (~microseconds) and high throughput (>26,000 bytes/sec), demonstrating efficient task scheduling and minimal I/O bottlenecks.
+- *Need for Adaptive Scheduling*
+  
+  Static configs may under-perform. Dynamically tuning batch size and threads based on workload size offers the best balance of speed, efficiency, and resource use.
 
 ### **Implementation Details**
 - Implemented SharedUrlQueue using std::mutex, std::condition_variable, and atomic done_ flag to synchronize access between the URL reader coroutine and parallel downloader threads.
