@@ -11,8 +11,8 @@
 
 // Write callback for curl
 size_t sequential_write_data(void* ptr, size_t size, size_t nmemb, void* userdata) {
-    // std::ofstream* stream = static_cast<std::ofstream*>(userdata);
-    // stream->write(static_cast<char*>(ptr), size * nmemb);
+    std::ofstream* stream = static_cast<std::ofstream*>(userdata);
+    stream->write(static_cast<char*>(ptr), size * nmemb);
     return size * nmemb;
 }
 
@@ -32,7 +32,7 @@ bool sequential_download_url(const std::string& url, const std::string& output_p
 
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, sequential_write_data);
-    // curl_easy_setopt(curl, CURLOPT_WRITEDATA, &file);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &file);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
     CURLcode res = curl_easy_perform(curl);

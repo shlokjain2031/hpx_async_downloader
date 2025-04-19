@@ -28,16 +28,16 @@ curl_off_t fetch_download_request(const std::string& url, const std::string& out
     curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION,
         +[](void* ptr, size_t size, size_t nmemb, void* stream) -> size_t {
-            // auto* out = static_cast<std::ofstream*>(stream);
-            // if (out && out->is_open()) {
-            //     out->write(static_cast<const char*>(ptr), size * nmemb);
-            //     return size * nmemb;
-            // }
-            // return 0;
+            auto* out = static_cast<std::ofstream*>(stream);
+            if (out && out->is_open()) {
+                out->write(static_cast<const char*>(ptr), size * nmemb);
+                return size * nmemb;
+            }
+            return 0;
             return size * nmemb;
         });
 
-    // curl_easy_setopt(handle, CURLOPT_WRITEDATA, &outfile);
+    curl_easy_setopt(handle, CURLOPT_WRITEDATA, &outfile);
 
     CURLcode res = curl_easy_perform(handle);
 

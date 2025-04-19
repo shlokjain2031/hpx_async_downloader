@@ -65,7 +65,6 @@ void print_pretty(std::size_t batch_size, std::size_t num_of_urls,  std::size_t 
 void print_benchmarks_csv(std::size_t batch_size, std::size_t num_of_urls, std::size_t total_parallel_bytes_downloaded, int num_threads, double time_taken, double speedup,
                             double efficiency, double throughput_parallel, double latency_per_task_parallel,
                             double throughput_sequential, double latency_per_task_sequential) {
-    system("clear");
     std::cout << batch_size << ","
               << num_of_urls << ','
               << total_parallel_bytes_downloaded << ','
@@ -120,9 +119,9 @@ int main(int argc, char* argv[]) {
     options_description cmdline("usage: " HPX_APPLICATION_STRING " [options]");
     // clang-format off
     cmdline.add_options()
-            ("benchmarking", hpx::program_options::value<int>()->default_value(1), "Benchmarking?")
+            ("benchmarking", hpx::program_options::value<int>()->default_value(0), "Benchmarking?")
             ("batch_size", hpx::program_options::value<std::size_t>()->default_value(1), "Batch size")
-            ("num_of_urls", hpx::program_options::value<std::size_t>()->default_value(3), "Number of URLs");
+            ("num_of_urls", hpx::program_options::value<std::size_t>()->default_value(20000), "Number of URLs");
 
     // clang-format on
     hpx::local::init_params init_args;
