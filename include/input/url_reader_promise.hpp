@@ -16,7 +16,7 @@ struct ReadUrlsHandle : std::coroutine_handle<ReadUrlsPromise> {
 
     ReadUrlsHandle() = default;
 
-    // 👇 Constructor that accepts the base class
+    // Constructor that accepts the base class
     ReadUrlsHandle(std::coroutine_handle<ReadUrlsPromise> h)
         : std::coroutine_handle<ReadUrlsPromise>(h) {}
 
